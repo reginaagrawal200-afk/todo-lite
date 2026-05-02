@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ================= MODEL =================
+
 const taskSchema = new mongoose.Schema({
   title: String,
   status: {
@@ -20,16 +20,16 @@ const taskSchema = new mongoose.Schema({
 
 const Task = mongoose.model("Task", taskSchema);
 
-// ================= ROUTES =================
+
 
 // Home route
 app.get("/", (req, res) => {
-  res.send("🚀 Todo API is running");
+  res.send(" Todo API is running");
 });
 
-// GET all tasks
+
 app.get("/tasks", async (req, res) => {
-  console.log("🔥 /tasks route hit");
+  console.log(" /tasks route hit");
 
   try {
     const tasks = await Task.find().lean();
@@ -42,7 +42,7 @@ app.get("/tasks", async (req, res) => {
   }
 });
 
-// CREATE task
+
 app.post("/tasks", async (req, res) => {
   try {
     const task = await Task.create({ title: req.body.title });
@@ -52,7 +52,7 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-// TOGGLE task status
+
 app.put("/tasks/:id", async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -70,7 +70,7 @@ app.put("/tasks/:id", async (req, res) => {
   }
 });
 
-// ================= DB CONNECTION =================
+
 
 async function startServer() {
   try {
@@ -78,14 +78,14 @@ async function startServer() {
 
     await mongoose.connect(process.env.MONGO_URI);
 
-    console.log("✅ MongoDB Connected");
+    console.log("MongoDB Connected");
 
     app.listen(5000, () => {
-      console.log("🔥 Server running on http://localhost:5000");
+      console.log("Server running on http://localhost:5000");
     });
 
   } catch (err) {
-    console.error("❌ DB CONNECTION FAILED:", err);
+    console.error("DB CONNECTION FAILED:", err);
     process.exit(1);
   }
 }
