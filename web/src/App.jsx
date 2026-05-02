@@ -7,7 +7,6 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
 
-  
   const fetchTasks = async () => {
     try {
       const res = await axios.get(`${API}/tasks`);
@@ -21,7 +20,6 @@ function App() {
     fetchTasks();
   }, []);
 
-
   const addTask = async () => {
     if (!title.trim()) return;
 
@@ -34,7 +32,6 @@ function App() {
     }
   };
 
-  
   const toggleTask = async (id) => {
     try {
       await axios.put(`${API}/tasks/${id}`);
@@ -55,7 +52,6 @@ function App() {
     >
       <h2 style={{ textAlign: "center" }}>Todo Lite</h2>
 
-      
       <div style={{ marginBottom: "20px", textAlign: "center" }}>
         <input
           value={title}
@@ -70,7 +66,6 @@ function App() {
         <button onClick={addTask}>Add</button>
       </div>
 
-     
       <ul style={{ listStyle: "none", padding: 0 }}>
         {tasks.map((t) => (
           <li
@@ -78,7 +73,7 @@ function App() {
             style={{
               marginBottom: "12px",
               padding: "10px",
-              background: "#f4f4f4",
+              background: "black",
               borderRadius: "8px",
               display: "flex",
               justifyContent: "space-between",
@@ -89,15 +84,25 @@ function App() {
               {t.title} -{" "}
               <strong
                 style={{
-                  color: t.status === "done" ? "green" : "orange",
+                  color: t.status === "done" ? "green" : "red",
                 }}
               >
                 {t.status}
               </strong>
             </span>
 
-            <button onClick={() => toggleTask(t._id)}>
-              Toggle
+            <button
+              onClick={() => toggleTask(t._id)}
+              style={{
+                background: t.status === "done" ? "#ff9800" : "#2196f3",
+                color: "#fff",
+                border: "none",
+                padding: "6px 10px",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              {t.status === "done" ? "Undo" : "Done"}
             </button>
           </li>
         ))}
