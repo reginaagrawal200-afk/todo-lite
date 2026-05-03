@@ -10,8 +10,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Todo Lite',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
       home: TodoPage(),
     );
   }
@@ -25,34 +28,58 @@ class TodoPage extends StatefulWidget {
 class _TodoPageState extends State<TodoPage> {
   List tasks = [];
   TextEditingController controller = TextEditingController();
+  bool isLoading = true;
 
-  // 🔥 IMPORTANT: change this after deployment
-  final String API = "http://192.168.1.67:5000/tasks";
-  // For Android emulator use 10.0.2.2 instead of localhost
+  final String API = "https://todo-lite.onrender.com/tasks";
 
+  
   Future fetchTasks() async {
-    final res = await http.get(Uri.parse(API));
-    setState(() {
-      tasks = json.decode(res.body);
-    });
+    try {
+      setState(() => isLoading = true);
+
+      final res = await http.get(Uri.parse(API));
+
+      if (res.statusCode == 200) {
+        setState(() {
+          tasks = json.decode(res.body);
+        });
+      } else {
+        print("Failed to fetch tasks");
+      }
+    } catch (e) {
+      print("Error: $e");
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
+  
   Future addTask() async {
-    if (controller.text.isEmpty) return;
+    if (controller.text.trim().isEmpty) return;
 
-    await http.post(
-      Uri.parse(API),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode({"title": controller.text}),
-    );
+    try {
+      await http.post(
+        Uri.parse(API),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"title": controller.text.trim()}),
+      );
 
-    controller.clear();
-    fetchTasks();
+      controller.clear();
+      fetchTasks();
+    } catch (e) {
+      print("Error adding task: $e");
+    }
   }
 
+  
+  
   Future toggleTask(String id) async {
-    await http.put(Uri.parse("$API/$id"));
-    fetchTasks();
+    try {
+      await http.put(Uri.parse("$API/$id"));
+      fetchTasks();
+    } catch (e) {
+      print("Error toggling task: $e");
+    }
   }
 
   @override
@@ -64,11 +91,15 @@ class _TodoPageState extends State<TodoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Todo Lite")),
+      appBar: AppBar(
+        title: Text("Todo Lite"),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
+            
             TextField(
               controller: controller,
               decoration: InputDecoration(
@@ -76,26 +107,59 @@ class _TodoPageState extends State<TodoPage> {
                 border: OutlineInputBorder(),
               ),
             ),
+
             SizedBox(height: 10),
+
+            
             ElevatedButton(
               onPressed: addTask,
               child: Text("Add Task"),
             ),
+
             SizedBox(height: 10),
+
+            
             Expanded(
-              child: ListView(
-                children: tasks.map<Widget>((task) {
-                  return ListTile(
-                    title: Text(
-                      "${task['title']} (${task['status']})",
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.check),
-                      onPressed: () => toggleTask(task['_id']),
-                    ),
-                  );
-                }).toList(),
-              ),
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : tasks.isEmpty
+                      ? Center(child: Text("No tasks yet"))
+                      : ListView.builder(
+                          itemCount: tasks.length,
+                          itemBuilder: (context, index) {
+                            final task = tasks[index];
+
+                            return Card(
+                              margin: EdgeInsets.symmetric(vertical: 5),
+                              child: ListTile(
+                                title: Text(
+                                  task['title'],
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    decoration: task['status'] == 'done'
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                                  ),
+                                ),
+                                subtitle: Text(task['status']),
+
+                                
+                                trailing: IconButton(
+                                  icon: Icon(
+                                    task['status'] == 'done'
+                                        ? Icons.check_circle
+                                        : Icons.radio_button_unchecked,
+                                    color: task['status'] == 'done'
+                                        ? Colors.green
+                                        : Colors.grey,
+                                  ),
+                                  onPressed: () =>
+                                      toggleTask(task['_id']),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),

@@ -22,7 +22,7 @@ const Task = mongoose.model("Task", taskSchema);
 
 
 
-// Home route
+
 app.get("/", (req, res) => {
   res.send(" Todo API is running");
 });
@@ -35,7 +35,7 @@ app.get("/tasks", async (req, res) => {
     const tasks = await Task.find().lean();
     console.log("Tasks:", tasks);
 
-    return res.json(tasks); // always return response
+    return res.json(tasks); 
   } catch (err) {
     console.error("ERROR:", err);
     return res.status(500).json({ error: err.message });
